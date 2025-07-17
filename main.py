@@ -4,6 +4,7 @@ import gspread
 import json
 import re
 from oauth2client.service_account import ServiceAccountCredentials
+import os
 
 app = FastAPI()
 
@@ -17,9 +18,16 @@ app.add_middleware(
 )
 
 def connect_to_sheet():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    with open("Config.json") as f:
-        creds_dict = json.load(f)
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
+
+    creds_json = os.getenv("GOOGLE_CREDS")  # Load from env var
+    if creds_json is None:
+        raise Exception("Missing GOOGLE_CREDS environment variable.")
+
+    creds_dict = json.loads(creds_json)
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
     sheet = client.open_by_key("1B5GhDPdkWhdyo39RLStR0o10VDQ77Wlw01DigisNRN0").sheet1
